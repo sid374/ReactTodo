@@ -47,31 +47,47 @@ const AddToDo = (props) => {
 			
 };
 
+const TodoList = (props) =>{
+	let st = props.store;
+	return(
+		<div>
+			<ul>
+				{props.list.map(function(value){
+					return <li onClick={() => {
+						st.dispatch({
+							type: 'TOGGLE_TODO',
+							id: value.id
+						});
+					}} key={value.id} style={{textDecoration: value.completed ? 'line-through' : ''}}>{value.text}</li>;
+				})}
+			</ul>
+		</div>
+	);
+};
+
+const Footer = (props) =>{
+	let st = props.store;
+	return(
+		<div>
+			<p>
+				Show: 
+				<FilterLink store={st} filter='SHOW_ALL'>All</FilterLink>,
+				<FilterLink store={st} filter='SHOW_ACTIVE'> Active</FilterLink>,
+				<FilterLink store={st} filter='SHOW_COMPLETED'> Completed</FilterLink>
+			</p>
+		</div>
+	);
+};
+
 var nextTodoId = 0;
 class Todo extends React.Component{
 	render(){
 		let st = this.props.store;
-		
 		return(
 			<div>
 				<AddToDo store={st} />
-				<ul>
-					{this.props.list.map(function(value){
-						return <li onClick={() => {
-							st.dispatch({
-								type: 'TOGGLE_TODO',
-								id: value.id
-							});
-						}} key={value.id} style={{textDecoration: value.completed ? 'line-through' : ''}}>{value.text}</li>;
-					})}
-				</ul>
-				<p>
-					Show: 
-					<FilterLink store={st} filter='SHOW_ALL'>All</FilterLink>,
-					<FilterLink store={st} filter='SHOW_ACTIVE'> Active</FilterLink>,
-					<FilterLink store={st} filter='SHOW_COMPLETED'> Completed</FilterLink>
-				</p>
-				
+				<TodoList store={st} list={this.props.list}/>
+				<Footer store={st}/>
 			</div>
 		);
 	}
