@@ -17,8 +17,7 @@ const FilterLink = (props) => {
 		</a>);
 };
 
-
-
+//test git comment
 const AddToDo = (props) => {
 	let st = props.store;
 	let inputField = undefined;
