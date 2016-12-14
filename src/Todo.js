@@ -35,7 +35,7 @@ const AddToDo = (props) => {
 		<input ref={node => {
 			inputField = node;
 			}} onKeyUp={(e) => {
-				if(e.keyCode == 13)
+				if(e.keyCode === 13)
 					disp();
 			}} type="text">
 		</input>
@@ -47,23 +47,74 @@ const AddToDo = (props) => {
 			
 };
 
+const TodoItem = (props) =>{
+	return(
+		<li onClick={() => {
+			props.onClickFn(props.id);
+		}} style={{textDecoration: props.completed ? 'line-through' : ''}}>
+			{props.text}
+		</li>
+	);
+};
+
+
 const TodoList = (props) =>{
-	let st = props.store;
 	return(
 		<div>
 			<ul>
 				{props.list.map(function(value){
-					return <li onClick={() => {
-						st.dispatch({
-							type: 'TOGGLE_TODO',
-							id: value.id
-						});
-					}} key={value.id} style={{textDecoration: value.completed ? 'line-through' : ''}}>{value.text}</li>;
+					return <TodoItem onClickFn={props.onClickFn} 
+							id={value.id} completed={value.completed} 
+							text={value.text} key={value.id}/>;
 				})}
 			</ul>
 		</div>
 	);
 };
+
+class VisibleTodoList extends React.Component{
+	constructor(props){
+		super(props);
+		this.store = props.store;
+		this.getFilteredTodos.bind(this);
+	}
+
+	componentDidMount(){
+		this.unsubscribe = this.store.subscribe(() => this.forceUpdate());
+	}
+	componentWillUnmount(){
+		this.unsubscribe();
+	}
+
+	getFilteredTodos () {
+		return this.store.getState().todos.filter(todo =>{
+			switch(this.store.getState().visibilityFilter){
+				case 'SHOW_ALL':
+					return true;
+				case 'SHOW_ACTIVE':
+					return todo.completed ? false : true;
+				case 'SHOW_COMPLETED':
+					return todo.completed ? true : false;
+			}
+		});
+	}
+
+	render(){
+		const props = this.props;
+		const state = this.store.getState();
+
+		return(
+			<TodoList onClickFn={(id) => {
+				this.store.dispatch({
+					type: 'TOGGLE_TODO',
+					id
+				});
+			}}
+			list={this.getFilteredTodos()}/>
+		);
+	}
+
+}
 
 const Footer = (props) =>{
 	let st = props.store;
@@ -86,7 +137,7 @@ class Todo extends React.Component{
 		return(
 			<div>
 				<AddToDo store={st} />
-				<TodoList store={st} list={this.props.list}/>
+				<VisibleTodoList store={st}/>
 				<Footer store={st}/>
 			</div>
 		);
