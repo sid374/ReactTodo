@@ -3,16 +3,46 @@ import ReactDom from 'react-dom';
 import { connect } from 'react-redux';
 
 
+/*
+---------------------------------------------------
+ACTION CREATORS
+---------------------------------------------------
+*/
 var nextTodoId = 0;
+const addTodo = (text) => {
+	return{
+		type:'ADD_TODO',
+		id: nextTodoId++,
+		text
+	}
+}
+
+const setVisibiltyFilter = (filter) => {
+	return{
+		type: 'SET_VISIBILITY_FILTER',
+		filter
+	}
+}
+
+const toggleToDo = (id) => {
+	return{
+		type: 'TOGGLE_TODO',
+		id
+	};
+}
+
+
+
+/*
+---------------------------------------------------
+AddToDo Component
+---------------------------------------------------
+*/
 
 let AddToDo = (props) => {
 	let inputField;
 	const disp = () => {
-		props.dispatch({
-			type:'ADD_TODO',
-			text: inputField.value,
-			id: nextTodoId++
-		});
+		props.dispatch(addTodo(inputField.value))	;
 		inputField.value = '';
 	};
 	return(
@@ -32,6 +62,13 @@ let AddToDo = (props) => {
 };
 
 AddToDo = connect()(AddToDo);
+
+
+/*
+---------------------------------------------------
+TodoList/TodoItem Components
+---------------------------------------------------
+*/
 
 const TodoItem = (props) =>{
 	return(
@@ -82,10 +119,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 	return {
 		onClickFn : (id) => {
-			dispatch({
-				type: 'TOGGLE_TODO',
-				id
-			});
+			dispatch(toggleToDo(id));
 		}
 	};
 };
@@ -95,23 +129,12 @@ const VisibleTodoList = connect(
 )(TodoList);
 	
 
+/*
+---------------------------------------------------
+Footer/Link Components
+---------------------------------------------------
+*/
 
-const mapStateToLinkProps = (state, ownProps) => {
-	return {
-		active: ownProps.filter === state.visibilityFilter
-	};
-};
-
-const mapDispatchToLinkProps = (dispatch, ownProps) => {
-	return{
-		onClick: () => {
-			dispatch({
-				type: 'SET_VISIBILITY_FILTER',
-				filter: ownProps.filter
-			});
-		}
-	};
-};
 
 const Link = (props) => {
 	if(props.active){
@@ -127,7 +150,6 @@ const Link = (props) => {
 
 };
 
-const FilterLink = connect(mapStateToLinkProps, mapDispatchToLinkProps)(Link);
 
 let Footer = (props) =>{
 	return(
@@ -141,6 +163,26 @@ let Footer = (props) =>{
 		</div>
 	);
 };
+const mapStateToLinkProps = (state, ownProps) => {
+	return {
+		active: ownProps.filter === state.visibilityFilter
+	};
+};
+
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+	return{
+		onClick: () => {
+			dispatch(setVisibiltyFilter(ownProps.filter));
+		}
+	};
+};
+const FilterLink = connect(mapStateToLinkProps, mapDispatchToLinkProps)(Link);
+
+/*
+---------------------------------------------------
+Top Level Todo App
+---------------------------------------------------
+*/
 
 const TodoApp = () => {
 	return(

@@ -5,7 +5,11 @@ import TodoApp from './Todo';
 
 import { createStore, combineReducers } from 'redux';
 import { Provider, connect } from 'react-redux';
-
+/*
+---------------------------------------------------
+Reducers
+---------------------------------------------------
+*/
 const todoReducer = (state, action) => {
 	switch(action.type){
 		case 'ADD_TODO':
@@ -72,17 +76,18 @@ const getFilteredTodos  = (allTodos, visFilter) => {
 	});
 };
 
+/*
+---------------------------------------------------
+First time render code;
+---------------------------------------------------
+*/
 
+ReactDOM.render(
+	<Provider store={createStore(todoAppReducer)}>
+		<TodoApp />
+	</Provider>,
+	document.getElementById('root')
+);
 
-const render = () => {
-	ReactDOM.render(
-		<Provider store={createStore(todoAppReducer)}>
-			<TodoApp />
-		</Provider>,
-		document.getElementById('root')
-	);};
-
-render();
-//store.subscribe(render);
 
 

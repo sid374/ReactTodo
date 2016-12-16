@@ -17,11 +17,10 @@ const SortableList = SortableContainer(({items}) => {
 class App extends React.Component{
 	constructor(){
 		super();
-		this.state = {items : [1,2,3,4]};
+		this.state = {items : [1, 2, 3, 4]};
 	}
 
 	render(){
-		console.log(this.state.items)
 		return (
             <SortableList items={this.state.items}/>
         );
