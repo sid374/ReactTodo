@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Counter from './Counter';
-import Todo from './Todo';
+import TodoApp from './Todo';
 
-import {createStore, combineReducers} from 'redux';
+import { createStore, combineReducers } from 'redux';
+import { Provider, connect } from 'react-redux';
 
-const todo = (state, action) => {
+const todoReducer = (state, action) => {
 	switch(action.type){
 		case 'ADD_TODO':
 			return{
@@ -27,17 +28,16 @@ const todo = (state, action) => {
 	}
 };
 
-
-
 const todos = (state = [], action) => {
 	switch(action.type){
 		case 'ADD_TODO':
-			return[
+			let retVal = [
 				...state,
-				todo(undefined, action)
+				todoReducer(undefined, action)
 			];
+			return retVal;
 		case 'TOGGLE_TODO':
-			return state.map(t => todo	(t, action));
+			return state.map(t => todoReducer	(t, action));
 		default:
 			return state;
 	}
@@ -53,16 +53,15 @@ const visibilityFilter =
 			return state;
 	}
 };
-const todoApp = combineReducers({
+
+const todoAppReducer = combineReducers({
 	todos,
 	visibilityFilter
 });
 
-const store = createStore(todoApp);
-
-const getFilteredTodos = () => {
-	return store.getState().todos.filter(todo =>{
-		switch(store.getState().visibilityFilter){
+const getFilteredTodos  = (allTodos, visFilter) => {
+	return allTodos.filter(todo =>{
+		switch(visFilter){
 			case 'SHOW_ALL':
 				return true;
 			case 'SHOW_ACTIVE':
@@ -73,21 +72,13 @@ const getFilteredTodos = () => {
 	});
 };
 
-const addToDo = (id, text) => {
-	store.dispatch({
-		type: 'INCREMENT',
-		id: id,
-		text: text
-	});
-};
 
 
 const render = () => {
-	const filteredTodos = getFilteredTodos(); 
 	ReactDOM.render(
-		<Todo 
-		list = {filteredTodos}
-		store={store}/>,
+		<Provider store={createStore(todoAppReducer)}>
+			<TodoApp />
+		</Provider>,
 		document.getElementById('root')
 	);};
 

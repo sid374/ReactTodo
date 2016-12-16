@@ -1,29 +1,14 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import { connect } from 'react-redux';
 
 
-const FilterLink = (props) => {
-	let st = props.store;
-	return (
-		<a href="#" onClick={ e => {
-			e.preventDefault();
-			st.dispatch({
-				type: 'SET_VISIBILITY_FILTER',
-				filter: props.filter
-			});
-		}}
-		>
-			{props.children}
-		</a>);
-};
+var nextTodoId = 0;
 
-
-
-const AddToDo = (props) => {
-	let st = props.store;
-	let inputField = undefined;
+let AddToDo = (props) => {
+	let inputField;
 	const disp = () => {
-		st.dispatch({
+		props.dispatch({
 			type:'ADD_TODO',
 			text: inputField.value,
 			id: nextTodoId++
@@ -44,8 +29,9 @@ const AddToDo = (props) => {
 		</button>
 	</div>
 	);
-			
 };
+
+AddToDo = connect()(AddToDo);
 
 const TodoItem = (props) =>{
 	return(
@@ -59,6 +45,7 @@ const TodoItem = (props) =>{
 
 
 const TodoList = (props) =>{
+	console.log("TodoList being rendered");
 	return(
 		<div>
 			<ul>
@@ -72,80 +59,98 @@ const TodoList = (props) =>{
 	);
 };
 
-class VisibleTodoList extends React.Component{
-	constructor(props){
-		super(props);
-		this.store = props.store;
-		this.getFilteredTodos.bind(this);
+
+const getFilteredTodos  = (allTodos, visFilter) => {
+	return allTodos.filter(todo =>{
+		switch(visFilter){
+			case 'SHOW_ALL':
+				return true;
+			case 'SHOW_ACTIVE':
+				return todo.completed ? false : true;
+			case 'SHOW_COMPLETED':
+				return todo.completed ? true : false;
+		}
+	});
+};
+
+const mapStateToProps = (state) => {
+	return {
+		list: getFilteredTodos(state.todos, state.visibilityFilter)
+	};
+};
+
+const mapDispatchToProps = (dispatch) => {
+	return {
+		onClickFn : (id) => {
+			dispatch({
+				type: 'TOGGLE_TODO',
+				id
+			});
+		}
+	};
+};
+const VisibleTodoList = connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(TodoList);
+	
+
+
+const mapStateToLinkProps = (state, ownProps) => {
+	return {
+		active: ownProps.filter === state.visibilityFilter
+	};
+};
+
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+	return{
+		onClick: () => {
+			dispatch({
+				type: 'SET_VISIBILITY_FILTER',
+				filter: ownProps.filter
+			});
+		}
+	};
+};
+
+const Link = (props) => {
+	if(props.active){
+		return <span>{props.children}</span>;
 	}
+	return (
+		<a href="#" onClick={ e => {
+			e.preventDefault();
+			props.onClick();
+		}}>
+			{props.children}
+		</a>);
 
-	componentDidMount(){
-		this.unsubscribe = this.store.subscribe(() => this.forceUpdate());
-	}
-	componentWillUnmount(){
-		this.unsubscribe();
-	}
+};
 
-	getFilteredTodos () {
-		return this.store.getState().todos.filter(todo =>{
-			switch(this.store.getState().visibilityFilter){
-				case 'SHOW_ALL':
-					return true;
-				case 'SHOW_ACTIVE':
-					return todo.completed ? false : true;
-				case 'SHOW_COMPLETED':
-					return todo.completed ? true : false;
-			}
-		});
-	}
+const FilterLink = connect(mapStateToLinkProps, mapDispatchToLinkProps)(Link);
 
-	render(){
-		const props = this.props;
-		const state = this.store.getState();
-
-		return(
-			<TodoList onClickFn={(id) => {
-				this.store.dispatch({
-					type: 'TOGGLE_TODO',
-					id
-				});
-			}}
-			list={this.getFilteredTodos()}/>
-		);
-	}
-
-}
-
-const Footer = (props) =>{
-	let st = props.store;
+let Footer = (props) =>{
 	return(
 		<div>
 			<p>
 				Show: 
-				<FilterLink store={st} filter='SHOW_ALL'>All</FilterLink>,
-				<FilterLink store={st} filter='SHOW_ACTIVE'> Active</FilterLink>,
-				<FilterLink store={st} filter='SHOW_COMPLETED'> Completed</FilterLink>
+				<FilterLink filter='SHOW_ALL'>All</FilterLink>,
+				<FilterLink filter='SHOW_ACTIVE'> Active</FilterLink>,
+				<FilterLink filter='SHOW_COMPLETED'> Completed</FilterLink>
 			</p>
 		</div>
 	);
 };
 
-var nextTodoId = 0;
-class Todo extends React.Component{
-	render(){
-		let st = this.props.store;
-		return(
-			<div>
-				<AddToDo store={st} />
-				<VisibleTodoList store={st}/>
-				<Footer store={st}/>
-			</div>
-		);
-	}
-}
-
-Todo.defaultProps = {
-	list: []
+const TodoApp = () => {
+	return(
+		<div>
+			<AddToDo />
+			<VisibleTodoList />
+			<Footer />
+		</div>
+	);
 };
 
-export default Todo;
+
+export default TodoApp;
